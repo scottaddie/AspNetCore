@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Components.Analyzers
 {
@@ -39,7 +42,27 @@ namespace Microsoft.AspNetCore.Components.Analyzers
                 throw new ArgumentNullException(nameof(property));
             }
 
-            return property.GetAttributes().Any(a => a.AttributeClass == symbols.ParameterAttribute);
+            var propertyAttributes = property.GetAttributes();
+            var hasParameterAttribute = HasParameterAttribute(symbols, propertyAttributes);
+            return hasParameterAttribute;
+        }
+
+        public static bool HasParameterAttribute(ComponentSymbols symbols, ImmutableArray<AttributeData> attributes)
+        {
+            if (symbols is null)
+            {
+                throw new ArgumentNullException(nameof(symbols));
+            }
+
+            for (var i = 0; i < attributes.Length; i++)
+            {
+                if (attributes[i].AttributeClass == symbols.ParameterAttribute)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsParameterWithCaptureUnmatchedValues(ComponentSymbols symbols, IPropertySymbol property)
@@ -84,6 +107,27 @@ namespace Microsoft.AspNetCore.Components.Analyzers
             }
 
             return property.GetAttributes().Any(a => a.AttributeClass == symbols.CascadingParameterAttribute);
+        }
+
+        public static bool IsComponent(ComponentSymbols symbols, Compilation compilation, INamedTypeSymbol type)
+        {
+            if (symbols is null)
+            {
+                throw new ArgumentNullException(nameof(symbols));
+            }
+
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var conversion = compilation.ClassifyConversion(symbols.IComponentType, type);
+            if (!conversion.Exists || !conversion.IsExplicit)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
