@@ -33,4 +33,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <Target Name="_GetPackageVersion" DependsOnTargets="ResolveProjectReferences" Returns="$(ComponentANalyzerPackageVersion)">
+    <PropertyGroup>
+      <ComponentAnalyzerPackageVersion>$(PackageVersion)</ComponentAnalyzerPackageVersion>
+    </PropertyGroup>
+  </Target>
+
 </Project>

@@ -19,13 +19,28 @@
     <Reference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
 
+  <Target Name="_GetComponentAnalyzerPackageVersion">
+    <MSBuild Targets="_GetPackageVersion"
+        BuildInParallel="$(BuildInParallel)"
+        Projects="../../Analyzers/src/Microsoft.AspNetCore.Components.Analyzers.csproj">
+      <Output TaskParameter="TargetOutputs" PropertyName="ComponentAnalyzerPackageVersion" />
+    </MSBuild>
+    <ItemGroup>
+      <NuspecProperty Include="componentAnalyzerPackageVersion=$(ComponentAnalyzerPackageVersion)" />
+    </ItemGroup>
+  </Target>
+
   <!-- Pack settings -->
   <PropertyGroup>
     <NuspecFile>Microsoft.AspNetCore.Components.nuspec</NuspecFile>
+    <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);_GetComponentAnalyzerPackageVersion;Restore</GenerateNuspecDependsOn>
+    <FirstProperty>@(Reference)</FirstProperty>
+    <FooProperty>@(Reference->WithMetadataValue('Identity', 'Microsoft.AspNetCore.Authorization')->'%(PackageVersion)')[0]</FooProperty>
   </PropertyGroup>
 
   <ItemGroup>
     <NuspecProperty Include="coherentPackageVersion=$(PackageVersion)" />
+    <NuspecProperty Include="authorizationPackageVersion=123" />
     <NuspecProperty Include="jsInteropPackageVersion=$(MicrosoftJSInteropPackageVersion)" />
     <NuspecProperty Include="systemComponentModelAnnotationsPackageVersion=$(SystemComponentModelAnnotationsPackageVersion)" />
     <NuspecProperty Include="outputPath=$(OutputPath)" />
